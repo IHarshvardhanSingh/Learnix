@@ -1,0 +1,1894 @@
+<!doctype html>
+<html lang="en">
+ <head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Learnix - Coaching Management System</title>
+  <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cdefs%3E%3ClinearGradient id='g1' x1='0%25' y1='0%25' x2='100%25' y2='100%25'%3E%3Cstop offset='0%25' style='stop-color:%23667eea;stop-opacity:1' /%3E%3Cstop offset='100%25' style='stop-color:%23764ba2;stop-opacity:1' /%3E%3C/linearGradient%3E%3C/defs%3E%3Ccircle cx='50' cy='50' r='48' fill='url(%23g1)'/%3E%3Ctext x='50' y='70' font-family='Arial' font-size='60' font-weight='bold' fill='white' text-anchor='middle'%3EL%3C/text%3E%3C/svg%3E">
+  <script src="/_sdk/element_sdk.js"></script>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <style>
+    body {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      height: 100%;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    }
+    html {
+      height: 100%;
+    }
+    .tab-button {
+      transition: all 0.3s ease;
+    }
+    .tab-button.active {
+      background: white;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    }
+    .card {
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+    .card:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 8px 16px rgba(0,0,0,0.1);
+    }
+    .loading-spinner {
+      border: 3px solid #f3f4f6;
+      border-top: 3px solid #3b82f6;
+      border-radius: 50%;
+      width: 24px;
+      height: 24px;
+      animation: spin 1s linear infinite;
+      display: inline-block;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    .toast {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: #10b981;
+      color: white;
+      padding: 16px 24px;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+      z-index: 1000;
+      animation: slideIn 0.3s ease;
+    }
+    @keyframes slideIn {
+      from {
+        transform: translateX(400px);
+        opacity: 0;
+      }
+      to {
+        transform: translateX(0);
+        opacity: 1;
+      }
+    }
+    .stat-card {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    }
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.5);
+      z-index: 1000;
+      align-items: center;
+      justify-content: center;
+    }
+    .modal.active {
+      display: flex;
+    }
+    .modal-content {
+      background: white;
+      border-radius: 16px;
+      max-width: 600px;
+      max-height: 90%;
+      overflow-y: auto;
+      width: 90%;
+    }
+  </style>
+  <style>@view-transition { navigation: auto; }</style>
+  <script src="/_sdk/data_sdk.js" type="text/javascript"></script>
+ </head>
+ <body class="bg-gradient-to-br from-blue-50 to-indigo-100">
+  <div class="min-h-full flex flex-col"><!-- Header -->
+   <header class="bg-white shadow-md">
+    <div class="px-6 py-4">
+     <div class="flex items-center justify-between">
+      <div class="flex items-center gap-4">
+       <svg width="60" height="60" viewbox="0 0 100 100" xmlns="http://www.w3.org/2000/svg"><defs>
+         <lineargradient id="logoGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" style="stop-color:#667eea;stop-opacity:1" />
+          <stop offset="100%" style="stop-color:#764ba2;stop-opacity:1" />
+         </lineargradient>
+        </defs> <circle cx="50" cy="50" r="48" fill="url(#logoGradient)" /> <text x="50" y="70" font-family="Arial, sans-serif" font-size="60" font-weight="bold" fill="white" text-anchor="middle">
+         L
+        </text>
+       </svg>
+       <div>
+        <h1 id="headerTitle" class="text-3xl font-bold text-indigo-600">Learnix</h1>
+        <p id="headerTagline" class="text-sm text-gray-600">Coaching Management System</p>
+       </div>
+      </div>
+      <div class="flex items-center gap-4"><button onclick="showInstituteProfile()" class="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 text-sm font-medium"> 🏢 Institute Profile </button> <button onclick="exportData()" class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 text-sm font-medium"> 📥 Export Data </button> <button onclick="importData()" class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 text-sm font-medium"> 📤 Import Data </button>
+       <div class="text-right">
+        <p class="text-sm text-gray-600">📊 Total Records</p>
+        <p id="recordCount" class="text-2xl font-bold text-indigo-600">0</p>
+       </div>
+      </div>
+     </div>
+    </div>
+   </header><!-- Navigation Tabs -->
+   <div class="bg-white border-b border-gray-200 px-6">
+    <div class="flex gap-2 overflow-x-auto"><button onclick="switchTab('dashboard')" class="tab-button active px-6 py-3 font-medium text-gray-700 rounded-t-lg whitespace-nowrap" id="tab-dashboard"> 📊 Dashboard </button> <button onclick="switchTab('students')" class="tab-button px-6 py-3 font-medium text-gray-600 hover:text-gray-900 rounded-t-lg whitespace-nowrap" id="tab-students"> 🎓 Students </button> <button onclick="switchTab('courses')" class="tab-button px-6 py-3 font-medium text-gray-600 hover:text-gray-900 rounded-t-lg whitespace-nowrap" id="tab-courses"> 📚 Courses </button> <button onclick="switchTab('faculty')" class="tab-button px-6 py-3 font-medium text-gray-600 hover:text-gray-900 rounded-t-lg whitespace-nowrap" id="tab-faculty"> 👨‍🏫 Faculty </button> <button onclick="switchTab('batches')" class="tab-button px-6 py-3 font-medium text-gray-600 hover:text-gray-900 rounded-t-lg whitespace-nowrap" id="tab-batches"> 📅 Batches </button> <button onclick="switchTab('attendance')" class="tab-button px-6 py-3 font-medium text-gray-600 hover:text-gray-900 rounded-t-lg whitespace-nowrap" id="tab-attendance"> ✅ Attendance </button> <button onclick="switchTab('performance')" class="tab-button px-6 py-3 font-medium text-gray-600 hover:text-gray-900 rounded-t-lg whitespace-nowrap" id="tab-performance"> 📈 Performance </button> <button onclick="switchTab('fees')" class="tab-button px-6 py-3 font-medium text-gray-600 hover:text-gray-900 rounded-t-lg whitespace-nowrap" id="tab-fees"> 💰 Fee </button>
+    </div>
+   </div><!-- Main Content -->
+   <main class="flex-1 px-6 py-6 overflow-y-auto"><!-- Dashboard Tab -->
+    <div id="content-dashboard" class="tab-content">
+     <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-6">
+      <div class="stat-card text-white rounded-xl p-6 shadow-lg">
+       <div class="flex items-center justify-between">
+        <div>
+         <p class="text-sm opacity-90">Total Students</p>
+         <p id="statStudents" class="text-4xl font-bold mt-2">0</p>
+        </div>
+        <div class="text-5xl opacity-80">
+         🎓
+        </div>
+       </div>
+      </div>
+      <div class="bg-gradient-to-br from-green-400 to-green-600 text-white rounded-xl p-6 shadow-lg">
+       <div class="flex items-center justify-between">
+        <div>
+         <p class="text-sm opacity-90">Total Courses</p>
+         <p id="statCourses" class="text-4xl font-bold mt-2">0</p>
+        </div>
+        <div class="text-5xl opacity-80">
+         📚
+        </div>
+       </div>
+      </div>
+      <div class="bg-gradient-to-br from-orange-400 to-orange-600 text-white rounded-xl p-6 shadow-lg">
+       <div class="flex items-center justify-between">
+        <div>
+         <p class="text-sm opacity-90">Faculty Members</p>
+         <p id="statFaculty" class="text-4xl font-bold mt-2">0</p>
+        </div>
+        <div class="text-5xl opacity-80">
+         👨‍🏫
+        </div>
+       </div>
+      </div>
+      <div class="bg-gradient-to-br from-pink-400 to-pink-600 text-white rounded-xl p-6 shadow-lg">
+       <div class="flex items-center justify-between">
+        <div>
+         <p class="text-sm opacity-90">Fee Collected</p>
+         <p id="statFees" class="text-4xl font-bold mt-2">₹0</p>
+        </div>
+        <div class="text-5xl opacity-80">
+         💰
+        </div>
+       </div>
+      </div>
+     </div>
+     <div class="bg-white rounded-xl shadow-md overflow-hidden">
+      <div class="relative">
+       <svg viewbox="0 0 1200 400" xmlns="http://www.w3.org/2000/svg" class="w-full"><defs>
+         <lineargradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" style="stop-color:#667eea;stop-opacity:1" />
+          <stop offset="100%" style="stop-color:#764ba2;stop-opacity:1" />
+         </lineargradient>
+         <lineargradient id="bookGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+          <stop offset="0%" style="stop-color:#fbbf24;stop-opacity:1" />
+          <stop offset="100%" style="stop-color:#f59e0b;stop-opacity:1" />
+         </lineargradient>
+        </defs> <rect width="1200" height="400" fill="url(#bgGradient)" /> <circle cx="100" cy="80" r="40" fill="rgba(255,255,255,0.1)" /> <circle cx="1100" cy="320" r="60" fill="rgba(255,255,255,0.1)" /> <circle cx="950" cy="100" r="30" fill="rgba(255,255,255,0.15)" /> <g transform="translate(200, 150)">
+         <rect x="0" y="100" width="180" height="25" rx="3" fill="#ef4444" />
+         <rect x="5" y="75" width="170" height="25" rx="3" fill="#3b82f6" />
+         <rect x="10" y="50" width="160" height="25" rx="3" fill="#10b981" />
+         <rect x="15" y="25" width="150" height="25" rx="3" fill="url(#bookGradient)" />
+        </g> <g transform="translate(500, 120)">
+         <polygon points="80,60 40,75 120,75" fill="#1f2937" />
+         <rect x="75" y="60" width="10" height="40" fill="#1f2937" />
+         <circle cx="80" cy="100" r="8" fill="#1f2937" />
+         <polygon points="80,45 20,65 140,65" fill="#fbbf24" />
+         <rect x="135" y="50" width="3" height="35" fill="#ef4444" />
+         <polygon points="138,50 132,45 144,45" fill="#ef4444" />
+        </g> <g transform="translate(750, 150)">
+         <circle cx="60" cy="40" r="25" fill="#fef3c7" />
+         <ellipse cx="60" cy="100" rx="35" ry="50" fill="#3b82f6" />
+         <rect x="30" y="80" width="15" height="60" rx="7" fill="#fef3c7" />
+         <rect x="85" y="80" width="15" height="60" rx="7" fill="#fef3c7" />
+         <rect x="45" y="145" width="15" height="50" rx="7" fill="#1e40af" />
+         <rect x="70" y="145" width="15" height="50" rx="7" fill="#1e40af" />
+        </g> <text x="600" y="300" font-family="Arial, sans-serif" font-size="48" font-weight="bold" fill="white" text-anchor="middle">
+         Welcome to Learnix! 🚀
+        </text> <text x="600" y="340" font-family="Arial, sans-serif" font-size="20" fill="rgba(255,255,255,0.9)" text-anchor="middle">
+         Complete Coaching Management System
+        </text>
+       </svg>
+      </div>
+      <div class="p-6 bg-gradient-to-r from-indigo-50 to-purple-50">
+       <p class="text-center text-gray-700 text-lg">Manage students, attendance, performance, fees, and more - All in one place! 📚✨</p>
+      </div>
+     </div>
+    </div><!-- Students Tab -->
+    <div id="content-students" class="tab-content hidden">
+     <div class="flex justify-between items-center mb-6">
+      <h2 class="text-2xl font-bold text-gray-800">Student Management</h2><button onclick="showAddStudentForm()" class="bg-indigo-600 text-white px-6 py-3 rounded-lg hover:bg-indigo-700 font-medium shadow-md"> + Add Student </button>
+     </div>
+     <div id="addStudentForm" class="hidden bg-white rounded-xl shadow-md p-6 mb-6">
+      <h3 class="text-xl font-bold text-gray-800 mb-4">Add New Student</h3>
+      <form onsubmit="addStudent(event)" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+       <div><label for="studentName" class="block text-sm font-medium text-gray-700 mb-1">Full Name *</label> <input type="text" id="studentName" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
+       </div>
+       <div><label for="studentContact" class="block text-sm font-medium text-gray-700 mb-1">Contact Number *</label> <input type="tel" id="studentContact" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
+       </div>
+       <div><label for="studentCourse" class="block text-sm font-medium text-gray-700 mb-1">Course *</label> <select id="studentCourse" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"> <option value="">Select Course</option> </select>
+       </div>
+       <div><label for="studentBatch" class="block text-sm font-medium text-gray-700 mb-1">Batch Name *</label> <select id="studentBatch" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"> <option value="">Select Batch</option> </select>
+       </div>
+       <div><label for="guardianName" class="block text-sm font-medium text-gray-700 mb-1">Guardian Name *</label> <input type="text" id="guardianName" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
+       </div>
+       <div><label for="guardianContact" class="block text-sm font-medium text-gray-700 mb-1">Guardian Contact *</label> <input type="tel" id="guardianContact" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent">
+       </div>
+       <div class="md:col-span-2 flex gap-3"><button type="submit" class="bg-indigo-600 text-white px-6 py-2 rounded-lg hover:bg-indigo-700 font-medium"> Save Student </button> <button type="button" onclick="hideAddStudentForm()" class="bg-gray-200 text-gray-700 px-6 py-2 rounded-lg hover:bg-gray-300 font-medium"> Cancel </button>
+       </div>
+      </form>
+     </div>
+     <div id="studentsList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"><!-- Students will be rendered here -->
+     </div>
+    </div><!-- Courses Tab -->
+    <div id="content-courses" class="tab-content hidden">
+     <div class="flex justify-between items-center mb-6">
+      <h2 class="text-2xl font-bold text-gray-800">Course Management</h2><button onclick="showAddCourseForm()" class="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 font-medium shadow-md"> + Add Course </button>
+     </div>
+     <div id="addCourseForm" class="hidden bg-white rounded-xl shadow-md p-6 mb-6">
+      <h3 class="text-xl font-bold text-gray-800 mb-4">Add New Course</h3>
+      <form onsubmit="addCourse(event)" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+       <div><label for="courseName" class="block text-sm font-medium text-gray-700 mb-1">Course Name *</label> <input type="text" id="courseName" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent">
+       </div>
+       <div><label for="courseDuration" class="block text-sm font-medium text-gray-700 mb-1">Duration *</label> <input type="text" id="courseDuration" required placeholder="e.g. 6 months" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent">
+       </div>
+       <div><label for="courseFee" class="block text-sm font-medium text-gray-700 mb-1">Fee Amount (₹) *</label> <input type="number" id="courseFee" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent">
+       </div>
+       <div><label for="courseSubject" class="block text-sm font-medium text-gray-700 mb-1">Main Subject *</label> <input type="text" id="courseSubject" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-green-500 focus:border-transparent">
+       </div>
+       <div class="md:col-span-2 flex gap-3"><button type="submit" class="bg-green-600 text-white px-6 py-2 rounded-lg hover:bg-green-700 font-medium"> Save Course </button> <button type="button" onclick="hideAddCourseForm()" class="bg-gray-200 text-gray-700 px-6 py-2 rounded-lg hover:bg-gray-300 font-medium"> Cancel </button>
+       </div>
+      </form>
+     </div>
+     <div id="coursesList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"><!-- Courses will be rendered here -->
+     </div>
+    </div><!-- Faculty Tab -->
+    <div id="content-faculty" class="tab-content hidden">
+     <div class="flex justify-between items-center mb-6">
+      <h2 class="text-2xl font-bold text-gray-800">Faculty Management</h2><button onclick="showAddFacultyForm()" class="bg-orange-600 text-white px-6 py-3 rounded-lg hover:bg-orange-700 font-medium shadow-md"> + Add Faculty </button>
+     </div>
+     <div id="addFacultyForm" class="hidden bg-white rounded-xl shadow-md p-6 mb-6">
+      <h3 class="text-xl font-bold text-gray-800 mb-4">Add New Faculty</h3>
+      <form onsubmit="addFaculty(event)" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+       <div><label for="facultyName" class="block text-sm font-medium text-gray-700 mb-1">Full Name *</label> <input type="text" id="facultyName" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent">
+       </div>
+       <div><label for="facultyContact" class="block text-sm font-medium text-gray-700 mb-1">Contact Number *</label> <input type="tel" id="facultyContact" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent">
+       </div>
+       <div><label for="facultyEmail" class="block text-sm font-medium text-gray-700 mb-1">Email *</label> <input type="email" id="facultyEmail" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent">
+       </div>
+       <div><label for="facultySubject" class="block text-sm font-medium text-gray-700 mb-1">Subject Specialization *</label> <input type="text" id="facultySubject" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent">
+       </div>
+       <div><label for="facultySalary" class="block text-sm font-medium text-gray-700 mb-1">Salary (₹) *</label> <input type="number" id="facultySalary" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent">
+       </div>
+       <div class="md:col-span-2 flex gap-3"><button type="submit" class="bg-orange-600 text-white px-6 py-2 rounded-lg hover:bg-orange-700 font-medium"> Save Faculty </button> <button type="button" onclick="hideAddFacultyForm()" class="bg-gray-200 text-gray-700 px-6 py-2 rounded-lg hover:bg-gray-300 font-medium"> Cancel </button>
+       </div>
+      </form>
+     </div>
+     <div id="facultyList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"><!-- Faculty will be rendered here -->
+     </div>
+    </div><!-- Batches Tab -->
+    <div id="content-batches" class="tab-content hidden">
+     <div class="flex justify-between items-center mb-6">
+      <h2 class="text-2xl font-bold text-gray-800">Batch Management</h2><button onclick="showAddBatchForm()" class="bg-pink-600 text-white px-6 py-3 rounded-lg hover:bg-pink-700 font-medium shadow-md"> + Add Batch </button>
+     </div>
+     <div id="addBatchForm" class="hidden bg-white rounded-xl shadow-md p-6 mb-6">
+      <h3 class="text-xl font-bold text-gray-800 mb-4">Add New Batch</h3>
+      <form onsubmit="addBatch(event)" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+       <div><label for="batchName" class="block text-sm font-medium text-gray-700 mb-1">Batch Name *</label> <input type="text" id="batchName" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent">
+       </div>
+       <div><label for="batchCourse" class="block text-sm font-medium text-gray-700 mb-1">Course *</label> <select id="batchCourse" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent"> <option value="">Select Course</option> </select>
+       </div>
+       <div><label for="batchTiming" class="block text-sm font-medium text-gray-700 mb-1">Timing *</label> <input type="text" id="batchTiming" required placeholder="e.g. 9:00 AM - 11:00 AM" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent">
+       </div>
+       <div><label for="batchDuration" class="block text-sm font-medium text-gray-700 mb-1">Duration *</label> <input type="text" id="batchDuration" required placeholder="e.g. 3 months" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-pink-500 focus:border-transparent">
+       </div>
+       <div class="md:col-span-2 flex gap-3"><button type="submit" class="bg-pink-600 text-white px-6 py-2 rounded-lg hover:bg-pink-700 font-medium"> Save Batch </button> <button type="button" onclick="hideAddBatchForm()" class="bg-gray-200 text-gray-700 px-6 py-2 rounded-lg hover:bg-gray-300 font-medium"> Cancel </button>
+       </div>
+      </form>
+     </div>
+     <div id="batchesList" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"><!-- Batches will be rendered here -->
+     </div>
+    </div><!-- Attendance Tab -->
+    <div id="content-attendance" class="tab-content hidden">
+     <div class="flex justify-between items-center mb-6">
+      <h2 class="text-2xl font-bold text-gray-800">Attendance Tracking</h2><button onclick="showMarkAttendanceForm()" class="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 font-medium shadow-md"> ✅ Mark Attendance </button>
+     </div>
+     <div id="markAttendanceForm" class="hidden bg-white rounded-xl shadow-md p-6 mb-6">
+      <h3 class="text-xl font-bold text-gray-800 mb-4">Mark Attendance</h3>
+      <form onsubmit="markAttendance(event)" class="space-y-4">
+       <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+        <div><label for="attendanceDate" class="block text-sm font-medium text-gray-700 mb-1">Date *</label> <input type="date" id="attendanceDate" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent">
+        </div>
+        <div><label for="attendanceBatch" class="block text-sm font-medium text-gray-700 mb-1">Batch *</label> <select id="attendanceBatch" required onchange="loadStudentsForAttendance()" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"> <option value="">Select Batch</option> </select>
+        </div>
+        <div><label for="attendanceSession" class="block text-sm font-medium text-gray-700 mb-1">Session *</label> <select id="attendanceSession" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"> <option value="Morning">Morning</option> <option value="Afternoon">Afternoon</option> <option value="Evening">Evening</option> </select>
+        </div>
+       </div>
+       <div id="attendanceStudentsList" class="space-y-2 max-h-96 overflow-y-auto"><!-- Students checkboxes will be rendered here -->
+       </div>
+       <div class="flex gap-3"><button type="submit" class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 font-medium"> Save Attendance </button> <button type="button" onclick="hideMarkAttendanceForm()" class="bg-gray-200 text-gray-700 px-6 py-2 rounded-lg hover:bg-gray-300 font-medium"> Cancel </button>
+       </div>
+      </form>
+     </div>
+     <div id="attendanceRecordsList" class="bg-white rounded-xl shadow-md p-6">
+      <h3 class="text-xl font-bold text-gray-800 mb-4">Attendance Records</h3>
+      <div id="attendanceRecords" class="space-y-3"><!-- Attendance records will be rendered here -->
+      </div>
+     </div>
+    </div><!-- Performance Tab -->
+    <div id="content-performance" class="tab-content hidden">
+     <div class="flex justify-between items-center mb-6">
+      <h2 class="text-2xl font-bold text-gray-800">Performance Management</h2><button onclick="showAddTestForm()" class="bg-purple-600 text-white px-6 py-3 rounded-lg hover:bg-purple-700 font-medium shadow-md"> 📝 Add Test Marks </button>
+     </div>
+     <div id="addTestForm" class="hidden bg-white rounded-xl shadow-md p-6 mb-6">
+      <h3 class="text-xl font-bold text-gray-800 mb-4">Record Test Marks</h3>
+      <form onsubmit="addTestMarks(event)" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+       <div><label for="testStudent" class="block text-sm font-medium text-gray-700 mb-1">Student *</label> <select id="testStudent" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"> <option value="">Select Student</option> </select>
+       </div>
+       <div><label for="testSubject" class="block text-sm font-medium text-gray-700 mb-1">Subject *</label> <input type="text" id="testSubject" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+       </div>
+       <div><label for="testName" class="block text-sm font-medium text-gray-700 mb-1">Test Name *</label> <input type="text" id="testName" required placeholder="e.g. Mid-term, Unit 1" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+       </div>
+       <div><label for="testDate" class="block text-sm font-medium text-gray-700 mb-1">Test Date *</label> <input type="date" id="testDate" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+       </div>
+       <div><label for="testMarksObtained" class="block text-sm font-medium text-gray-700 mb-1">Marks Obtained *</label> <input type="number" id="testMarksObtained" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+       </div>
+       <div><label for="testTotalMarks" class="block text-sm font-medium text-gray-700 mb-1">Total Marks *</label> <input type="number" id="testTotalMarks" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+       </div>
+       <div class="md:col-span-2"><label for="testRemarks" class="block text-sm font-medium text-gray-700 mb-1">Remarks (Optional)</label> <textarea id="testRemarks" rows="2" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"></textarea>
+       </div>
+       <div class="md:col-span-2 flex gap-3"><button type="submit" class="bg-purple-600 text-white px-6 py-2 rounded-lg hover:bg-purple-700 font-medium"> Save Marks </button> <button type="button" onclick="hideAddTestForm()" class="bg-gray-200 text-gray-700 px-6 py-2 rounded-lg hover:bg-gray-300 font-medium"> Cancel </button>
+       </div>
+      </form>
+     </div>
+     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+      <div class="lg:col-span-1">
+       <div class="bg-white rounded-xl shadow-md p-6">
+        <h3 class="text-lg font-bold text-gray-800 mb-3">Select Student</h3><select id="performanceStudentSelect" onchange="showStudentPerformance()" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"> <option value="">Select Student</option> </select>
+       </div>
+      </div>
+      <div class="lg:col-span-2">
+       <div id="performanceDetails" class="bg-white rounded-xl shadow-md p-6">
+        <p class="text-gray-500 text-center py-8">Select a student to view performance details</p>
+       </div>
+      </div>
+     </div>
+     <div id="allTestsList" class="bg-white rounded-xl shadow-md p-6">
+      <h3 class="text-xl font-bold text-gray-800 mb-4">All Test Records</h3>
+      <div id="testRecords" class="space-y-3"><!-- Test records will be rendered here -->
+      </div>
+     </div>
+    </div><!-- Fee Management Tab -->
+    <div id="content-fees" class="tab-content hidden">
+     <div class="flex justify-between items-center mb-6">
+      <h2 class="text-2xl font-bold text-gray-800">Fee Management</h2><button onclick="showAddPaymentForm()" class="bg-emerald-600 text-white px-6 py-3 rounded-lg hover:bg-emerald-700 font-medium shadow-md"> + Record Payment </button>
+     </div>
+     <div id="addPaymentForm" class="hidden bg-white rounded-xl shadow-md p-6 mb-6">
+      <h3 class="text-xl font-bold text-gray-800 mb-4">Record Fee Payment</h3>
+      <form onsubmit="addPayment(event)" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+       <div><label for="paymentStudent" class="block text-sm font-medium text-gray-700 mb-1">Student Name *</label> <select id="paymentStudent" required onchange="handleStudentSelect()" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"> <option value="">Select Student</option> </select>
+       </div>
+       <div><label for="paymentCourse" class="block text-sm font-medium text-gray-700 mb-1">Course *</label> <select id="paymentCourse" required onchange="handleCourseSelect()" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"> <option value="">Select Course</option> </select>
+       </div>
+       <div><label for="paymentBatch" class="block text-sm font-medium text-gray-700 mb-1">Batch *</label> <select id="paymentBatch" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"> <option value="">Select Batch</option> </select>
+       </div>
+       <div><label for="paymentAmount" class="block text-sm font-medium text-gray-700 mb-1">Amount (₹) *</label> <input type="number" id="paymentAmount" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent">
+       </div>
+       <div><label for="paymentMode" class="block text-sm font-medium text-gray-700 mb-1">Payment Mode *</label> <select id="paymentMode" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"> <option value="">Select Mode</option> <option value="Cash">Cash</option> <option value="UPI">UPI</option> <option value="Bank Transfer">Bank Transfer</option> <option value="Cheque">Cheque</option> </select>
+       </div>
+       <div><label for="paymentDate" class="block text-sm font-medium text-gray-700 mb-1">Payment Date *</label> <input type="date" id="paymentDate" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent">
+       </div>
+       <div class="md:col-span-2"><label for="paymentNotes" class="block text-sm font-medium text-gray-700 mb-1">Notes (Optional)</label> <textarea id="paymentNotes" rows="2" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500 focus:border-transparent"></textarea>
+       </div>
+       <div class="md:col-span-2 flex gap-3"><button type="submit" class="bg-emerald-600 text-white px-6 py-2 rounded-lg hover:bg-emerald-700 font-medium"> Record Payment </button> <button type="button" onclick="hideAddPaymentForm()" class="bg-gray-200 text-gray-700 px-6 py-2 rounded-lg hover:bg-gray-300 font-medium"> Cancel </button>
+       </div>
+      </form>
+     </div>
+     <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-6">
+      <div class="bg-white rounded-xl shadow-md p-6">
+       <div class="flex items-center justify-between">
+        <div>
+         <p class="text-sm text-gray-600">Total Collected</p>
+         <p id="totalCollected" class="text-3xl font-bold text-green-600 mt-2">₹0</p>
+        </div>
+        <div class="text-4xl">
+         💵
+        </div>
+       </div>
+      </div>
+      <div class="bg-white rounded-xl shadow-md p-6">
+       <div class="flex items-center justify-between">
+        <div>
+         <p class="text-sm text-gray-600">This Month</p>
+         <p id="monthCollected" class="text-3xl font-bold text-blue-600 mt-2">₹0</p>
+        </div>
+        <div class="text-4xl">
+         📅
+        </div>
+       </div>
+      </div>
+      <div class="bg-white rounded-xl shadow-md p-6">
+       <div class="flex items-center justify-between">
+        <div>
+         <p class="text-sm text-gray-600">Total Payments</p>
+         <p id="totalPayments" class="text-3xl font-bold text-purple-600 mt-2">0</p>
+        </div>
+        <div class="text-4xl">
+         📊
+        </div>
+       </div>
+      </div>
+     </div>
+     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
+      <div class="lg:col-span-1 bg-white rounded-xl shadow-md p-6">
+       <h3 class="text-lg font-bold text-gray-800 mb-3">Fee Reminders</h3>
+       <div id="feeRemindersList" class="space-y-2"><!-- Fee reminders will be rendered here -->
+       </div>
+      </div>
+      <div class="lg:col-span-2 bg-white rounded-xl shadow-md p-6">
+       <div class="flex justify-between items-center mb-4">
+        <h3 class="text-xl font-bold text-gray-800">Student Fee History</h3><select id="feeHistoryStudentSelect" onchange="showFeeHistory()" class="px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-emerald-500"> <option value="">Select Student</option> </select>
+       </div>
+       <div id="feeHistoryDetails">
+        <p class="text-gray-500 text-center py-8">Select a student to view fee history</p>
+       </div>
+      </div>
+     </div>
+     <div class="bg-white rounded-xl shadow-md p-6">
+      <h3 class="text-xl font-bold text-gray-800 mb-4">Recent Payments</h3>
+      <div id="paymentsList" class="space-y-3"><!-- Payments will be rendered here -->
+      </div>
+     </div>
+    </div>
+   </main><!-- Footer Status Bar -->
+   <footer class="bg-gradient-to-r from-indigo-600 to-purple-600 text-white py-3 px-6">
+    <div class="flex items-center justify-center gap-2 text-sm"><span>Designed by</span> <a href="https://www.digitalguide.co.in" target="_blank" rel="noopener noreferrer" class="font-bold hover:underline cursor-pointer"> Digital Guide </a>
+    </div>
+   </footer>
+  </div><!-- Institute Profile Modal -->
+  <div id="instituteProfileModal" class="modal">
+   <div class="modal-content p-6">
+    <div class="flex justify-between items-center mb-4">
+     <h3 class="text-2xl font-bold text-gray-800">Institute Profile</h3><button onclick="closeInstituteProfileModal()" class="text-gray-500 hover:text-gray-700 text-2xl">×</button>
+    </div>
+    <form onsubmit="saveInstituteProfile(event)" class="space-y-4">
+     <div><label for="instituteName" class="block text-sm font-medium text-gray-700 mb-1">Institute Name *</label> <input type="text" id="instituteName" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+     </div>
+     <div><label for="instituteAddress" class="block text-sm font-medium text-gray-700 mb-1">Address *</label> <textarea id="instituteAddress" required rows="2" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent"></textarea>
+     </div>
+     <div class="grid grid-cols-2 gap-4">
+      <div><label for="institutePhone" class="block text-sm font-medium text-gray-700 mb-1">Phone *</label> <input type="tel" id="institutePhone" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+      </div>
+      <div><label for="instituteEmail" class="block text-sm font-medium text-gray-700 mb-1">Email *</label> <input type="email" id="instituteEmail" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+      </div>
+     </div>
+     <div><label for="instituteWebsite" class="block text-sm font-medium text-gray-700 mb-1">Website (Optional)</label> <input type="url" id="instituteWebsite" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+     </div>
+     <div><label for="instituteRegistration" class="block text-sm font-medium text-gray-700 mb-1">Registration Number (Optional)</label> <input type="text" id="instituteRegistration" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-purple-500 focus:border-transparent">
+     </div>
+     <div class="flex gap-3 pt-4"><button type="submit" class="bg-purple-600 text-white px-6 py-2 rounded-lg hover:bg-purple-700 font-medium"> Save Profile </button> <button type="button" onclick="closeInstituteProfileModal()" class="bg-gray-200 text-gray-700 px-6 py-2 rounded-lg hover:bg-gray-300 font-medium"> Cancel </button>
+     </div>
+    </form>
+   </div>
+  </div><!-- Student Details Modal -->
+  <div id="studentDetailsModal" class="modal">
+   <div class="modal-content p-6">
+    <div class="flex justify-between items-center mb-4">
+     <h3 class="text-2xl font-bold text-gray-800">Student Details</h3><button onclick="closeStudentModal()" class="text-gray-500 hover:text-gray-700 text-2xl">×</button>
+    </div>
+    <div id="studentDetailsContent"><!-- Student details will be rendered here -->
+    </div>
+   </div>
+  </div><input type="file" id="importFileInput" accept=".json" style="display: none;" onchange="handleImportFile(event)">
+  <script>
+    const defaultConfig = {
+      app_title: "Learnix",
+      tagline: "Coaching Management System"
+    };
+
+    // Local Storage Data Management
+    let allData = {
+      students: [],
+      courses: [],
+      faculty: [],
+      batches: [],
+      payments: [],
+      attendance: [],
+      tests: [],
+      instituteProfile: null
+    };
+
+    function saveToLocalStorage() {
+      localStorage.setItem('learnixData', JSON.stringify(allData));
+      renderAllViews();
+      updateStats();
+    }
+
+    function loadFromLocalStorage() {
+      const stored = localStorage.getItem('learnixData');
+      if (stored) {
+        allData = JSON.parse(stored);
+      }
+      renderAllViews();
+      updateStats();
+    }
+
+    function generateId() {
+      return 'id_' + Date.now() + '_' + Math.random().toString(36).substr(2, 9);
+    }
+
+    // Export/Import Functions
+    function exportData() {
+      const dataStr = JSON.stringify(allData, null, 2);
+      const dataBlob = new Blob([dataStr], { type: 'application/json' });
+      const url = URL.createObjectURL(dataBlob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = `learnix_backup_${new Date().toISOString().split('T')[0]}.json`;
+      link.click();
+      URL.revokeObjectURL(url);
+      showToast('Data exported successfully!', 'success');
+    }
+
+    function importData() {
+      document.getElementById('importFileInput').click();
+    }
+
+    function handleImportFile(event) {
+      const file = event.target.files[0];
+      if (!file) return;
+
+      const reader = new FileReader();
+      reader.onload = function(e) {
+        try {
+          const importedData = JSON.parse(e.target.result);
+          allData = importedData;
+          saveToLocalStorage();
+          showToast('Data imported successfully!', 'success');
+        } catch (error) {
+          showToast('Failed to import data. Invalid file format.', 'error');
+        }
+      };
+      reader.readAsText(file);
+      event.target.value = '';
+    }
+
+    function renderAllViews() {
+      renderStudents();
+      renderCourses();
+      renderFaculty();
+      renderBatches();
+      renderPayments();
+      renderAttendance();
+      renderTests();
+      renderFeeReminders();
+      document.getElementById('recordCount').textContent = 
+        allData.students.length + allData.courses.length + allData.faculty.length + allData.batches.length;
+    }
+
+    function updateStats() {
+      document.getElementById('statStudents').textContent = allData.students.length;
+      document.getElementById('statCourses').textContent = allData.courses.length;
+      document.getElementById('statFaculty').textContent = allData.faculty.length;
+      
+      const totalFees = allData.payments.reduce((sum, p) => sum + (parseFloat(p.amount) || 0), 0);
+      document.getElementById('statFees').textContent = '₹' + totalFees.toLocaleString('en-IN');
+    }
+
+    // Students Functions
+    function showAddStudentForm() {
+      document.getElementById('addStudentForm').classList.remove('hidden');
+      populateStudentFormDropdowns();
+    }
+
+    function populateStudentFormDropdowns() {
+      const courseSelect = document.getElementById('studentCourse');
+      courseSelect.innerHTML = '<option value="">Select Course</option>';
+      allData.courses.forEach(course => {
+        const option = document.createElement('option');
+        option.value = course.name;
+        option.textContent = course.name;
+        courseSelect.appendChild(option);
+      });
+
+      const batchSelect = document.getElementById('studentBatch');
+      batchSelect.innerHTML = '<option value="">Select Batch</option>';
+      allData.batches.forEach(batch => {
+        const option = document.createElement('option');
+        option.value = batch.name;
+        option.textContent = batch.name;
+        batchSelect.appendChild(option);
+      });
+    }
+
+    function hideAddStudentForm() {
+      document.getElementById('addStudentForm').classList.add('hidden');
+      document.getElementById('addStudentForm').querySelector('form').reset();
+      editingStudentId = null;
+      document.querySelector('#addStudentForm h3').textContent = 'Add New Student';
+      document.querySelector('#addStudentForm button[type="submit"]').textContent = 'Save Student';
+    }
+
+    function addStudent(event) {
+      event.preventDefault();
+      
+      if (editingStudentId) {
+        const studentIndex = allData.students.findIndex(s => s.id === editingStudentId);
+        if (studentIndex !== -1) {
+          allData.students[studentIndex] = {
+            ...allData.students[studentIndex],
+            name: document.getElementById('studentName').value,
+            contact: document.getElementById('studentContact').value,
+            batch: document.getElementById('studentBatch').value,
+            course: document.getElementById('studentCourse').value,
+            guardianName: document.getElementById('guardianName').value,
+            guardianContact: document.getElementById('guardianContact').value
+          };
+          showToast('Student updated successfully!', 'success');
+        }
+      } else {
+        const student = {
+          id: generateId(),
+          name: document.getElementById('studentName').value,
+          contact: document.getElementById('studentContact').value,
+          batch: document.getElementById('studentBatch').value,
+          course: document.getElementById('studentCourse').value,
+          guardianName: document.getElementById('guardianName').value,
+          guardianContact: document.getElementById('guardianContact').value,
+          createdAt: new Date().toISOString()
+        };
+        allData.students.push(student);
+        showToast('Student added successfully!', 'success');
+      }
+      
+      saveToLocalStorage();
+      hideAddStudentForm();
+    }
+
+    function renderStudents() {
+      const container = document.getElementById('studentsList');
+      if (allData.students.length === 0) {
+        container.innerHTML = '<div class="col-span-full text-center py-12 text-gray-500">No students added yet. Click "Add Student" to get started!</div>';
+        return;
+      }
+
+      container.innerHTML = allData.students.map(student => `
+        <div class="card bg-white rounded-xl shadow-md p-6">
+          <div class="flex items-start justify-between mb-4">
+            <div class="flex items-center gap-3">
+              <div class="w-12 h-12 rounded-full bg-indigo-100 flex items-center justify-center text-2xl">👨‍🎓</div>
+              <div>
+                <h3 class="font-bold text-gray-800">${student.name}</h3>
+                <p class="text-sm text-gray-600">${student.contact}</p>
+              </div>
+            </div>
+            <div class="flex gap-2">
+              <button onclick="viewStudentDetails('${student.id}')" class="text-blue-500 hover:text-blue-700 text-xl">👁️</button>
+              <button onclick="editStudent('${student.id}')" class="text-green-500 hover:text-green-700 text-xl">✏️</button>
+              <button onclick="deleteStudent('${student.id}')" class="text-red-500 hover:text-red-700 text-xl">🗑️</button>
+            </div>
+          </div>
+          <div class="space-y-2 text-sm">
+            <div class="flex justify-between">
+              <span class="text-gray-600">Course:</span>
+              <span class="font-medium text-gray-800">${student.course}</span>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-gray-600">Batch:</span>
+              <span class="font-medium text-gray-800">${student.batch}</span>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-gray-600">Guardian:</span>
+              <span class="font-medium text-gray-800">${student.guardianName}</span>
+            </div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    let editingStudentId = null;
+
+    function editStudent(id) {
+      const student = allData.students.find(s => s.id === id);
+      if (!student) return;
+
+      editingStudentId = id;
+      document.getElementById('studentName').value = student.name;
+      document.getElementById('studentContact').value = student.contact;
+      document.getElementById('guardianName').value = student.guardianName;
+      document.getElementById('guardianContact').value = student.guardianContact;
+      
+      populateStudentFormDropdowns();
+      document.getElementById('studentCourse').value = student.course;
+      document.getElementById('studentBatch').value = student.batch;
+      
+      document.getElementById('addStudentForm').classList.remove('hidden');
+      document.querySelector('#addStudentForm h3').textContent = 'Edit Student';
+      document.querySelector('#addStudentForm button[type="submit"]').textContent = 'Update Student';
+    }
+
+    function deleteStudent(id) {
+      allData.students = allData.students.filter(s => s.id !== id);
+      saveToLocalStorage();
+      showToast('Student deleted successfully!', 'success');
+    }
+
+    function viewStudentDetails(id) {
+      const student = allData.students.find(s => s.id === id);
+      if (!student) return;
+
+      const payments = allData.payments.filter(p => p.studentName === student.name);
+      const tests = allData.tests.filter(t => t.studentName === student.name);
+      const attendanceRecords = allData.attendance.filter(a => a.presentStudents && a.presentStudents.includes(student.name));
+
+      const totalPaid = payments.reduce((sum, p) => sum + parseFloat(p.amount || 0), 0);
+      const avgMarks = tests.length > 0 ? 
+        (tests.reduce((sum, t) => sum + (parseFloat(t.marksObtained) / parseFloat(t.totalMarks) * 100), 0) / tests.length).toFixed(2) : 0;
+      const attendancePercentage = allData.attendance.length > 0 ? 
+        ((attendanceRecords.length / allData.attendance.filter(a => a.batch === student.batch).length) * 100).toFixed(2) : 0;
+
+      const content = `
+        <div class="space-y-6">
+          <div class="grid grid-cols-2 gap-4">
+            <div>
+              <p class="text-sm text-gray-600">Name</p>
+              <p class="font-semibold text-gray-800">${student.name}</p>
+            </div>
+            <div>
+              <p class="text-sm text-gray-600">Contact</p>
+              <p class="font-semibold text-gray-800">${student.contact}</p>
+            </div>
+            <div>
+              <p class="text-sm text-gray-600">Course</p>
+              <p class="font-semibold text-gray-800">${student.course}</p>
+            </div>
+            <div>
+              <p class="text-sm text-gray-600">Batch</p>
+              <p class="font-semibold text-gray-800">${student.batch}</p>
+            </div>
+            <div>
+              <p class="text-sm text-gray-600">Guardian</p>
+              <p class="font-semibold text-gray-800">${student.guardianName}</p>
+            </div>
+            <div>
+              <p class="text-sm text-gray-600">Guardian Contact</p>
+              <p class="font-semibold text-gray-800">${student.guardianContact}</p>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-3 gap-4">
+            <div class="bg-green-50 rounded-lg p-4 text-center">
+              <p class="text-sm text-gray-600">Total Fees Paid</p>
+              <p class="text-2xl font-bold text-green-600">₹${totalPaid.toLocaleString('en-IN')}</p>
+            </div>
+            <div class="bg-blue-50 rounded-lg p-4 text-center">
+              <p class="text-sm text-gray-600">Avg Performance</p>
+              <p class="text-2xl font-bold text-blue-600">${avgMarks}%</p>
+            </div>
+            <div class="bg-purple-50 rounded-lg p-4 text-center">
+              <p class="text-sm text-gray-600">Attendance</p>
+              <p class="text-2xl font-bold text-purple-600">${attendancePercentage}%</p>
+            </div>
+          </div>
+
+          <div>
+            <h4 class="font-bold text-gray-800 mb-2">Recent Test Scores</h4>
+            <div class="space-y-2 max-h-48 overflow-y-auto">
+              ${tests.length > 0 ? tests.slice(-5).reverse().map(test => `
+                <div class="flex justify-between items-center p-2 bg-gray-50 rounded">
+                  <div>
+                    <p class="font-medium text-sm">${test.testName}</p>
+                    <p class="text-xs text-gray-600">${test.subject}</p>
+                  </div>
+                  <div class="text-right">
+                    <p class="font-bold text-sm">${test.marksObtained}/${test.totalMarks}</p>
+                    <p class="text-xs ${parseFloat(test.marksObtained)/parseFloat(test.totalMarks) >= 0.6 ? 'text-green-600' : 'text-red-600'}">
+                      ${((parseFloat(test.marksObtained)/parseFloat(test.totalMarks)) * 100).toFixed(1)}%
+                    </p>
+                  </div>
+                </div>
+              `).join('') : '<p class="text-gray-500 text-sm">No test records yet</p>'}
+            </div>
+          </div>
+        </div>
+      `;
+
+      document.getElementById('studentDetailsContent').innerHTML = content;
+      document.getElementById('studentDetailsModal').classList.add('active');
+    }
+
+    function closeStudentModal() {
+      document.getElementById('studentDetailsModal').classList.remove('active');
+    }
+
+    // Institute Profile Functions
+    function showInstituteProfile() {
+      if (allData.instituteProfile) {
+        document.getElementById('instituteName').value = allData.instituteProfile.name || '';
+        document.getElementById('instituteAddress').value = allData.instituteProfile.address || '';
+        document.getElementById('institutePhone').value = allData.instituteProfile.phone || '';
+        document.getElementById('instituteEmail').value = allData.instituteProfile.email || '';
+        document.getElementById('instituteWebsite').value = allData.instituteProfile.website || '';
+        document.getElementById('instituteRegistration').value = allData.instituteProfile.registration || '';
+      }
+      document.getElementById('instituteProfileModal').classList.add('active');
+    }
+
+    function closeInstituteProfileModal() {
+      document.getElementById('instituteProfileModal').classList.remove('active');
+    }
+
+    function saveInstituteProfile(event) {
+      event.preventDefault();
+      allData.instituteProfile = {
+        name: document.getElementById('instituteName').value,
+        address: document.getElementById('instituteAddress').value,
+        phone: document.getElementById('institutePhone').value,
+        email: document.getElementById('instituteEmail').value,
+        website: document.getElementById('instituteWebsite').value,
+        registration: document.getElementById('instituteRegistration').value,
+        updatedAt: new Date().toISOString()
+      };
+      saveToLocalStorage();
+      showToast('Institute profile saved successfully!', 'success');
+      closeInstituteProfileModal();
+    }
+
+    // Courses Functions
+    function showAddCourseForm() {
+      document.getElementById('addCourseForm').classList.remove('hidden');
+    }
+
+    function hideAddCourseForm() {
+      document.getElementById('addCourseForm').classList.add('hidden');
+      document.getElementById('addCourseForm').querySelector('form').reset();
+      editingCourseId = null;
+      document.querySelector('#addCourseForm h3').textContent = 'Add New Course';
+      document.querySelector('#addCourseForm button[type="submit"]').textContent = 'Save Course';
+    }
+
+    function addCourse(event) {
+      event.preventDefault();
+      
+      if (editingCourseId) {
+        const courseIndex = allData.courses.findIndex(c => c.id === editingCourseId);
+        if (courseIndex !== -1) {
+          allData.courses[courseIndex] = {
+            ...allData.courses[courseIndex],
+            name: document.getElementById('courseName').value,
+            duration: document.getElementById('courseDuration').value,
+            fee: parseFloat(document.getElementById('courseFee').value),
+            subject: document.getElementById('courseSubject').value
+          };
+          showToast('Course updated successfully!', 'success');
+        }
+      } else {
+        const course = {
+          id: generateId(),
+          name: document.getElementById('courseName').value,
+          duration: document.getElementById('courseDuration').value,
+          fee: parseFloat(document.getElementById('courseFee').value),
+          subject: document.getElementById('courseSubject').value,
+          createdAt: new Date().toISOString()
+        };
+        allData.courses.push(course);
+        showToast('Course added successfully!', 'success');
+      }
+      
+      saveToLocalStorage();
+      hideAddCourseForm();
+    }
+
+    function renderCourses() {
+      const container = document.getElementById('coursesList');
+      if (allData.courses.length === 0) {
+        container.innerHTML = '<div class="col-span-full text-center py-12 text-gray-500">No courses added yet. Click "Add Course" to get started!</div>';
+        return;
+      }
+
+      container.innerHTML = allData.courses.map(course => `
+        <div class="card bg-white rounded-xl shadow-md p-6">
+          <div class="flex items-start justify-between mb-4">
+            <div class="flex items-center gap-3">
+              <div class="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center text-2xl">📚</div>
+              <div>
+                <h3 class="font-bold text-gray-800">${course.name}</h3>
+                <p class="text-sm text-gray-600">${course.subject}</p>
+              </div>
+            </div>
+            <div class="flex gap-2">
+              <button onclick="editCourse('${course.id}')" class="text-green-500 hover:text-green-700 text-xl">✏️</button>
+              <button onclick="deleteCourse('${course.id}')" class="text-red-500 hover:text-red-700 text-xl">🗑️</button>
+            </div>
+          </div>
+          <div class="space-y-2 text-sm">
+            <div class="flex justify-between">
+              <span class="text-gray-600">Duration:</span>
+              <span class="font-medium text-gray-800">${course.duration}</span>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-gray-600">Fee:</span>
+              <span class="font-medium text-green-600">₹${course.fee}</span>
+            </div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    let editingCourseId = null;
+
+    function editCourse(id) {
+      const course = allData.courses.find(c => c.id === id);
+      if (!course) return;
+
+      editingCourseId = id;
+      document.getElementById('courseName').value = course.name;
+      document.getElementById('courseDuration').value = course.duration;
+      document.getElementById('courseFee').value = course.fee;
+      document.getElementById('courseSubject').value = course.subject;
+      
+      document.getElementById('addCourseForm').classList.remove('hidden');
+      document.querySelector('#addCourseForm h3').textContent = 'Edit Course';
+      document.querySelector('#addCourseForm button[type="submit"]').textContent = 'Update Course';
+    }
+
+    function deleteCourse(id) {
+      allData.courses = allData.courses.filter(c => c.id !== id);
+      saveToLocalStorage();
+      showToast('Course deleted successfully!', 'success');
+    }
+
+    // Faculty Functions
+    function showAddFacultyForm() {
+      document.getElementById('addFacultyForm').classList.remove('hidden');
+    }
+
+    function hideAddFacultyForm() {
+      document.getElementById('addFacultyForm').classList.add('hidden');
+      document.getElementById('addFacultyForm').querySelector('form').reset();
+      editingFacultyId = null;
+      document.querySelector('#addFacultyForm h3').textContent = 'Add New Faculty';
+      document.querySelector('#addFacultyForm button[type="submit"]').textContent = 'Save Faculty';
+    }
+
+    function addFaculty(event) {
+      event.preventDefault();
+      
+      if (editingFacultyId) {
+        const facultyIndex = allData.faculty.findIndex(f => f.id === editingFacultyId);
+        if (facultyIndex !== -1) {
+          allData.faculty[facultyIndex] = {
+            ...allData.faculty[facultyIndex],
+            name: document.getElementById('facultyName').value,
+            contact: document.getElementById('facultyContact').value,
+            email: document.getElementById('facultyEmail').value,
+            subject: document.getElementById('facultySubject').value,
+            salary: parseFloat(document.getElementById('facultySalary').value)
+          };
+          showToast('Faculty updated successfully!', 'success');
+        }
+      } else {
+        const faculty = {
+          id: generateId(),
+          name: document.getElementById('facultyName').value,
+          contact: document.getElementById('facultyContact').value,
+          email: document.getElementById('facultyEmail').value,
+          subject: document.getElementById('facultySubject').value,
+          salary: parseFloat(document.getElementById('facultySalary').value),
+          createdAt: new Date().toISOString()
+        };
+        allData.faculty.push(faculty);
+        showToast('Faculty added successfully!', 'success');
+      }
+      
+      saveToLocalStorage();
+      hideAddFacultyForm();
+    }
+
+    function renderFaculty() {
+      const container = document.getElementById('facultyList');
+      if (allData.faculty.length === 0) {
+        container.innerHTML = '<div class="col-span-full text-center py-12 text-gray-500">No faculty added yet. Click "Add Faculty" to get started!</div>';
+        return;
+      }
+
+      container.innerHTML = allData.faculty.map(f => `
+        <div class="card bg-white rounded-xl shadow-md p-6">
+          <div class="flex items-start justify-between mb-4">
+            <div class="flex items-center gap-3">
+              <div class="w-12 h-12 rounded-full bg-orange-100 flex items-center justify-center text-2xl">👨‍🏫</div>
+              <div>
+                <h3 class="font-bold text-gray-800">${f.name}</h3>
+                <p class="text-sm text-gray-600">${f.subject}</p>
+              </div>
+            </div>
+            <div class="flex gap-2">
+              <button onclick="editFaculty('${f.id}')" class="text-green-500 hover:text-green-700 text-xl">✏️</button>
+              <button onclick="deleteFaculty('${f.id}')" class="text-red-500 hover:text-red-700 text-xl">🗑️</button>
+            </div>
+          </div>
+          <div class="space-y-2 text-sm">
+            <div class="flex justify-between">
+              <span class="text-gray-600">Contact:</span>
+              <span class="font-medium text-gray-800">${f.contact}</span>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-gray-600">Email:</span>
+              <span class="font-medium text-gray-800">${f.email}</span>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-gray-600">Salary:</span>
+              <span class="font-medium text-orange-600">₹${f.salary}</span>
+            </div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    let editingFacultyId = null;
+
+    function editFaculty(id) {
+      const faculty = allData.faculty.find(f => f.id === id);
+      if (!faculty) return;
+
+      editingFacultyId = id;
+      document.getElementById('facultyName').value = faculty.name;
+      document.getElementById('facultyContact').value = faculty.contact;
+      document.getElementById('facultyEmail').value = faculty.email;
+      document.getElementById('facultySubject').value = faculty.subject;
+      document.getElementById('facultySalary').value = faculty.salary;
+      
+      document.getElementById('addFacultyForm').classList.remove('hidden');
+      document.querySelector('#addFacultyForm h3').textContent = 'Edit Faculty';
+      document.querySelector('#addFacultyForm button[type="submit"]').textContent = 'Update Faculty';
+    }
+
+    function deleteFaculty(id) {
+      allData.faculty = allData.faculty.filter(f => f.id !== id);
+      saveToLocalStorage();
+      showToast('Faculty deleted successfully!', 'success');
+    }
+
+    // Batches Functions
+    function showAddBatchForm() {
+      document.getElementById('addBatchForm').classList.remove('hidden');
+      populateBatchFormCourses();
+    }
+
+    function populateBatchFormCourses() {
+      const courseSelect = document.getElementById('batchCourse');
+      courseSelect.innerHTML = '<option value="">Select Course</option>';
+      allData.courses.forEach(course => {
+        const option = document.createElement('option');
+        option.value = course.name;
+        option.textContent = course.name;
+        courseSelect.appendChild(option);
+      });
+    }
+
+    function hideAddBatchForm() {
+      document.getElementById('addBatchForm').classList.add('hidden');
+      document.getElementById('addBatchForm').querySelector('form').reset();
+      editingBatchId = null;
+      document.querySelector('#addBatchForm h3').textContent = 'Add New Batch';
+      document.querySelector('#addBatchForm button[type="submit"]').textContent = 'Save Batch';
+    }
+
+    function addBatch(event) {
+      event.preventDefault();
+      
+      if (editingBatchId) {
+        const batchIndex = allData.batches.findIndex(b => b.id === editingBatchId);
+        if (batchIndex !== -1) {
+          allData.batches[batchIndex] = {
+            ...allData.batches[batchIndex],
+            name: document.getElementById('batchName').value,
+            course: document.getElementById('batchCourse').value,
+            timing: document.getElementById('batchTiming').value,
+            duration: document.getElementById('batchDuration').value
+          };
+          showToast('Batch updated successfully!', 'success');
+        }
+      } else {
+        const batch = {
+          id: generateId(),
+          name: document.getElementById('batchName').value,
+          course: document.getElementById('batchCourse').value,
+          timing: document.getElementById('batchTiming').value,
+          duration: document.getElementById('batchDuration').value,
+          createdAt: new Date().toISOString()
+        };
+        allData.batches.push(batch);
+        showToast('Batch added successfully!', 'success');
+      }
+      
+      saveToLocalStorage();
+      hideAddBatchForm();
+    }
+
+    function renderBatches() {
+      const container = document.getElementById('batchesList');
+      if (allData.batches.length === 0) {
+        container.innerHTML = '<div class="col-span-full text-center py-12 text-gray-500">No batches added yet. Click "Add Batch" to get started!</div>';
+        return;
+      }
+
+      container.innerHTML = allData.batches.map(batch => `
+        <div class="card bg-white rounded-xl shadow-md p-6">
+          <div class="flex items-start justify-between mb-4">
+            <div class="flex items-center gap-3">
+              <div class="w-12 h-12 rounded-full bg-pink-100 flex items-center justify-center text-2xl">📅</div>
+              <div>
+                <h3 class="font-bold text-gray-800">${batch.name}</h3>
+                <p class="text-sm text-gray-600">${batch.course}</p>
+              </div>
+            </div>
+            <div class="flex gap-2">
+              <button onclick="editBatch('${batch.id}')" class="text-green-500 hover:text-green-700 text-xl">✏️</button>
+              <button onclick="deleteBatch('${batch.id}')" class="text-red-500 hover:text-red-700 text-xl">🗑️</button>
+            </div>
+          </div>
+          <div class="space-y-2 text-sm">
+            <div class="flex justify-between">
+              <span class="text-gray-600">Timing:</span>
+              <span class="font-medium text-gray-800">${batch.timing}</span>
+            </div>
+            <div class="flex justify-between">
+              <span class="text-gray-600">Duration:</span>
+              <span class="font-medium text-gray-800">${batch.duration}</span>
+            </div>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    let editingBatchId = null;
+
+    function editBatch(id) {
+      const batch = allData.batches.find(b => b.id === id);
+      if (!batch) return;
+
+      editingBatchId = id;
+      populateBatchFormCourses();
+      document.getElementById('batchName').value = batch.name;
+      document.getElementById('batchCourse').value = batch.course;
+      document.getElementById('batchTiming').value = batch.timing;
+      document.getElementById('batchDuration').value = batch.duration;
+      
+      document.getElementById('addBatchForm').classList.remove('hidden');
+      document.querySelector('#addBatchForm h3').textContent = 'Edit Batch';
+      document.querySelector('#addBatchForm button[type="submit"]').textContent = 'Update Batch';
+    }
+
+    function deleteBatch(id) {
+      allData.batches = allData.batches.filter(b => b.id !== id);
+      saveToLocalStorage();
+      showToast('Batch deleted successfully!', 'success');
+    }
+
+    // Attendance Functions
+    function showMarkAttendanceForm() {
+      document.getElementById('markAttendanceForm').classList.remove('hidden');
+      document.getElementById('attendanceDate').valueAsDate = new Date();
+      populateBatchesForAttendance();
+    }
+
+    function hideMarkAttendanceForm() {
+      document.getElementById('markAttendanceForm').classList.add('hidden');
+      document.getElementById('markAttendanceForm').querySelector('form').reset();
+      editingAttendanceId = null;
+      document.querySelector('#markAttendanceForm h3').textContent = 'Mark Attendance';
+      document.querySelector('#markAttendanceForm button[type="submit"]').textContent = 'Save Attendance';
+    }
+
+    function populateBatchesForAttendance() {
+      const select = document.getElementById('attendanceBatch');
+      select.innerHTML = '<option value="">Select Batch</option>';
+      allData.batches.forEach(batch => {
+        const option = document.createElement('option');
+        option.value = batch.name;
+        option.textContent = batch.name;
+        select.appendChild(option);
+      });
+    }
+
+    function loadStudentsForAttendance() {
+      const batch = document.getElementById('attendanceBatch').value;
+      if (!batch) return;
+
+      const students = allData.students.filter(s => s.batch === batch);
+      const container = document.getElementById('attendanceStudentsList');
+      
+      if (students.length === 0) {
+        container.innerHTML = '<p class="text-gray-500 text-center py-4">No students in this batch</p>';
+        return;
+      }
+
+      container.innerHTML = students.map(student => `
+        <label class="flex items-center gap-3 p-3 bg-gray-50 rounded-lg hover:bg-gray-100 cursor-pointer">
+          <input type="checkbox" name="attendance" value="${student.name}" checked class="w-5 h-5 text-blue-600">
+          <div class="flex-1">
+            <p class="font-medium text-gray-800">${student.name}</p>
+            <p class="text-sm text-gray-600">${student.contact}</p>
+          </div>
+        </label>
+      `).join('');
+    }
+
+    function markAttendance(event) {
+      event.preventDefault();
+      const checkboxes = document.querySelectorAll('input[name="attendance"]:checked');
+      const presentStudents = Array.from(checkboxes).map(cb => cb.value);
+
+      if (editingAttendanceId) {
+        const attendanceIndex = allData.attendance.findIndex(a => a.id === editingAttendanceId);
+        if (attendanceIndex !== -1) {
+          allData.attendance[attendanceIndex] = {
+            ...allData.attendance[attendanceIndex],
+            date: document.getElementById('attendanceDate').value,
+            batch: document.getElementById('attendanceBatch').value,
+            session: document.getElementById('attendanceSession').value,
+            presentStudents: presentStudents,
+            totalStudents: document.querySelectorAll('input[name="attendance"]').length
+          };
+          showToast('Attendance updated successfully!', 'success');
+        }
+      } else {
+        const attendance = {
+          id: generateId(),
+          date: document.getElementById('attendanceDate').value,
+          batch: document.getElementById('attendanceBatch').value,
+          session: document.getElementById('attendanceSession').value,
+          presentStudents: presentStudents,
+          totalStudents: document.querySelectorAll('input[name="attendance"]').length,
+          createdAt: new Date().toISOString()
+        };
+        allData.attendance.push(attendance);
+        showToast('Attendance marked successfully!', 'success');
+      }
+
+      saveToLocalStorage();
+      hideMarkAttendanceForm();
+    }
+
+    function renderAttendance() {
+      const container = document.getElementById('attendanceRecords');
+      if (allData.attendance.length === 0) {
+        container.innerHTML = '<p class="text-gray-500 text-center py-8">No attendance records yet. Click "Mark Attendance" to get started!</p>';
+        return;
+      }
+
+      const sortedAttendance = [...allData.attendance].sort((a, b) => new Date(b.date) - new Date(a.date));
+
+      container.innerHTML = sortedAttendance.map(record => {
+        const percentage = ((record.presentStudents.length / record.totalStudents) * 100).toFixed(1);
+        const date = new Date(record.date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+        
+        return `
+          <div class="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:bg-gray-50">
+            <div class="flex items-center gap-4">
+              <div class="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center">
+                <span class="text-xl">✅</span>
+              </div>
+              <div>
+                <h4 class="font-semibold text-gray-800">${record.batch} - ${record.session}</h4>
+                <p class="text-sm text-gray-600">${date}</p>
+              </div>
+            </div>
+            <div class="text-right">
+              <p class="text-2xl font-bold ${percentage >= 75 ? 'text-green-600' : percentage >= 50 ? 'text-yellow-600' : 'text-red-600'}">
+                ${percentage}%
+              </p>
+              <p class="text-sm text-gray-600">${record.presentStudents.length}/${record.totalStudents} present</p>
+            </div>
+            <div class="flex gap-2 ml-4">
+              <button onclick="editAttendance('${record.id}')" class="text-green-500 hover:text-green-700 text-xl">✏️</button>
+              <button onclick="deleteAttendance('${record.id}')" class="text-red-500 hover:text-red-700 text-xl">🗑️</button>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    let editingAttendanceId = null;
+
+    function editAttendance(id) {
+      const attendance = allData.attendance.find(a => a.id === id);
+      if (!attendance) return;
+
+      editingAttendanceId = id;
+      document.getElementById('attendanceDate').value = attendance.date;
+      document.getElementById('attendanceSession').value = attendance.session;
+      
+      populateBatchesForAttendance();
+      document.getElementById('attendanceBatch').value = attendance.batch;
+      loadStudentsForAttendance();
+      
+      setTimeout(() => {
+        const checkboxes = document.querySelectorAll('input[name="attendance"]');
+        checkboxes.forEach(checkbox => {
+          checkbox.checked = attendance.presentStudents.includes(checkbox.value);
+        });
+      }, 100);
+      
+      document.getElementById('markAttendanceForm').classList.remove('hidden');
+      document.querySelector('#markAttendanceForm h3').textContent = 'Edit Attendance';
+      document.querySelector('#markAttendanceForm button[type="submit"]').textContent = 'Update Attendance';
+    }
+
+    function deleteAttendance(id) {
+      allData.attendance = allData.attendance.filter(a => a.id !== id);
+      saveToLocalStorage();
+      showToast('Attendance record deleted!', 'success');
+    }
+
+    // Performance/Test Functions
+    function showAddTestForm() {
+      document.getElementById('addTestForm').classList.remove('hidden');
+      document.getElementById('testDate').valueAsDate = new Date();
+      populateStudentsForTest();
+    }
+
+    function hideAddTestForm() {
+      document.getElementById('addTestForm').classList.add('hidden');
+      document.getElementById('addTestForm').querySelector('form').reset();
+      editingTestId = null;
+      document.querySelector('#addTestForm h3').textContent = 'Record Test Marks';
+      document.querySelector('#addTestForm button[type="submit"]').textContent = 'Save Marks';
+    }
+
+    function populateStudentsForTest() {
+      const selects = [document.getElementById('testStudent'), document.getElementById('performanceStudentSelect')];
+      selects.forEach(select => {
+        if (!select) return;
+        const currentValue = select.value;
+        select.innerHTML = '<option value="">Select Student</option>';
+        allData.students.forEach(student => {
+          const option = document.createElement('option');
+          option.value = student.name;
+          option.textContent = student.name;
+          select.appendChild(option);
+        });
+        if (currentValue) select.value = currentValue;
+      });
+    }
+
+    function addTestMarks(event) {
+      event.preventDefault();
+      
+      if (editingTestId) {
+        const testIndex = allData.tests.findIndex(t => t.id === editingTestId);
+        if (testIndex !== -1) {
+          allData.tests[testIndex] = {
+            ...allData.tests[testIndex],
+            studentName: document.getElementById('testStudent').value,
+            subject: document.getElementById('testSubject').value,
+            testName: document.getElementById('testName').value,
+            date: document.getElementById('testDate').value,
+            marksObtained: parseFloat(document.getElementById('testMarksObtained').value),
+            totalMarks: parseFloat(document.getElementById('testTotalMarks').value),
+            remarks: document.getElementById('testRemarks').value
+          };
+          showToast('Test marks updated successfully!', 'success');
+        }
+      } else {
+        const test = {
+          id: generateId(),
+          studentName: document.getElementById('testStudent').value,
+          subject: document.getElementById('testSubject').value,
+          testName: document.getElementById('testName').value,
+          date: document.getElementById('testDate').value,
+          marksObtained: parseFloat(document.getElementById('testMarksObtained').value),
+          totalMarks: parseFloat(document.getElementById('testTotalMarks').value),
+          remarks: document.getElementById('testRemarks').value,
+          createdAt: new Date().toISOString()
+        };
+        allData.tests.push(test);
+        showToast('Test marks added successfully!', 'success');
+      }
+
+      saveToLocalStorage();
+      hideAddTestForm();
+    }
+
+    function renderTests() {
+      const container = document.getElementById('testRecords');
+      if (allData.tests.length === 0) {
+        container.innerHTML = '<p class="text-gray-500 text-center py-8">No test records yet. Click "Add Test Marks" to get started!</p>';
+        return;
+      }
+
+      const sortedTests = [...allData.tests].sort((a, b) => new Date(b.date) - new Date(a.date));
+
+      container.innerHTML = sortedTests.map(test => {
+        const percentage = ((test.marksObtained / test.totalMarks) * 100).toFixed(1);
+        const date = new Date(test.date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+        
+        return `
+          <div class="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:bg-gray-50">
+            <div class="flex items-center gap-4 flex-1">
+              <div class="w-12 h-12 rounded-full bg-purple-100 flex items-center justify-center">
+                <span class="text-xl">📝</span>
+              </div>
+              <div class="flex-1">
+                <div class="flex items-center gap-3">
+                  <h4 class="font-semibold text-gray-800">${test.studentName}</h4>
+                  <span class="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">${test.subject}</span>
+                </div>
+                <p class="text-sm text-gray-600">${test.testName} • ${date}</p>
+                ${test.remarks ? `<p class="text-sm text-gray-500 mt-1">${test.remarks}</p>` : ''}
+              </div>
+            </div>
+            <div class="text-right mr-4">
+              <p class="text-2xl font-bold ${percentage >= 60 ? 'text-green-600' : percentage >= 40 ? 'text-yellow-600' : 'text-red-600'}">
+                ${test.marksObtained}/${test.totalMarks}
+              </p>
+              <p class="text-sm text-gray-600">${percentage}%</p>
+            </div>
+            <div class="flex gap-2">
+              <button onclick="editTest('${test.id}')" class="text-green-500 hover:text-green-700 text-xl">✏️</button>
+              <button onclick="deleteTest('${test.id}')" class="text-red-500 hover:text-red-700 text-xl">🗑️</button>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      populateStudentsForTest();
+    }
+
+    let editingTestId = null;
+
+    function editTest(id) {
+      const test = allData.tests.find(t => t.id === id);
+      if (!test) return;
+
+      editingTestId = id;
+      populateStudentsForTest();
+      document.getElementById('testStudent').value = test.studentName;
+      document.getElementById('testSubject').value = test.subject;
+      document.getElementById('testName').value = test.testName;
+      document.getElementById('testDate').value = test.date;
+      document.getElementById('testMarksObtained').value = test.marksObtained;
+      document.getElementById('testTotalMarks').value = test.totalMarks;
+      document.getElementById('testRemarks').value = test.remarks || '';
+      
+      document.getElementById('addTestForm').classList.remove('hidden');
+      document.querySelector('#addTestForm h3').textContent = 'Edit Test Marks';
+      document.querySelector('#addTestForm button[type="submit"]').textContent = 'Update Marks';
+    }
+
+    function deleteTest(id) {
+      allData.tests = allData.tests.filter(t => t.id !== id);
+      saveToLocalStorage();
+      showToast('Test record deleted!', 'success');
+    }
+
+    function showStudentPerformance() {
+      const studentName = document.getElementById('performanceStudentSelect').value;
+      if (!studentName) {
+        document.getElementById('performanceDetails').innerHTML = '<p class="text-gray-500 text-center py-8">Select a student to view performance details</p>';
+        return;
+      }
+
+      const studentTests = allData.tests.filter(t => t.studentName === studentName);
+      
+      if (studentTests.length === 0) {
+        document.getElementById('performanceDetails').innerHTML = '<p class="text-gray-500 text-center py-8">No test records for this student</p>';
+        return;
+      }
+
+      const avgPercentage = (studentTests.reduce((sum, t) => sum + (t.marksObtained / t.totalMarks * 100), 0) / studentTests.length).toFixed(2);
+      const sortedTests = [...studentTests].sort((a, b) => new Date(b.date) - new Date(a.date));
+
+      const content = `
+        <div class="space-y-4">
+          <div class="bg-gradient-to-r from-purple-50 to-blue-50 rounded-lg p-4">
+            <p class="text-sm text-gray-600">Average Performance</p>
+            <p class="text-4xl font-bold ${avgPercentage >= 60 ? 'text-green-600' : avgPercentage >= 40 ? 'text-yellow-600' : 'text-red-600'}">
+              ${avgPercentage}%
+            </p>
+            <p class="text-sm text-gray-600 mt-1">${studentTests.length} tests recorded</p>
+          </div>
+
+          <div class="space-y-2">
+            <h4 class="font-bold text-gray-800">Test History</h4>
+            ${sortedTests.map(test => {
+              const percentage = ((test.marksObtained / test.totalMarks) * 100).toFixed(1);
+              return `
+                <div class="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                  <div>
+                    <p class="font-medium text-sm">${test.testName}</p>
+                    <p class="text-xs text-gray-600">${test.subject} • ${new Date(test.date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short' })}</p>
+                  </div>
+                  <div class="text-right">
+                    <p class="font-bold">${test.marksObtained}/${test.totalMarks}</p>
+                    <p class="text-xs ${percentage >= 60 ? 'text-green-600' : percentage >= 40 ? 'text-yellow-600' : 'text-red-600'}">
+                      ${percentage}%
+                    </p>
+                  </div>
+                </div>
+              `;
+            }).join('')}
+          </div>
+        </div>
+      `;
+
+      document.getElementById('performanceDetails').innerHTML = content;
+    }
+
+    // Fee Management Functions
+    function showAddPaymentForm() {
+      document.getElementById('addPaymentForm').classList.remove('hidden');
+      document.getElementById('paymentDate').valueAsDate = new Date();
+      populatePaymentDropdowns();
+    }
+
+    function hideAddPaymentForm() {
+      document.getElementById('addPaymentForm').classList.add('hidden');
+      document.getElementById('addPaymentForm').querySelector('form').reset();
+      editingPaymentId = null;
+      document.querySelector('#addPaymentForm h3').textContent = 'Record Fee Payment';
+      document.querySelector('#addPaymentForm button[type="submit"]').textContent = 'Record Payment';
+    }
+
+    function populatePaymentDropdowns() {
+      const studentSelect = document.getElementById('paymentStudent');
+      studentSelect.innerHTML = '<option value="">Select Student</option>';
+      allData.students.forEach(student => {
+        const option = document.createElement('option');
+        option.value = student.name;
+        option.textContent = student.name;
+        option.dataset.course = student.course;
+        option.dataset.batch = student.batch;
+        studentSelect.appendChild(option);
+      });
+
+      const courseSelect = document.getElementById('paymentCourse');
+      courseSelect.innerHTML = '<option value="">Select Course</option>';
+      allData.courses.forEach(course => {
+        const option = document.createElement('option');
+        option.value = course.name;
+        option.textContent = course.name;
+        option.dataset.fee = course.fee;
+        courseSelect.appendChild(option);
+      });
+
+      const batchSelect = document.getElementById('paymentBatch');
+      batchSelect.innerHTML = '<option value="">Select Batch</option>';
+      allData.batches.forEach(batch => {
+        const option = document.createElement('option');
+        option.value = batch.name;
+        option.textContent = `${batch.name} (${batch.course})`;
+        batchSelect.appendChild(option);
+      });
+
+      populateFeeHistoryDropdown();
+    }
+
+    function handleStudentSelect() {
+      const studentSelect = document.getElementById('paymentStudent');
+      const selectedOption = studentSelect.options[studentSelect.selectedIndex];
+      
+      if (selectedOption.value) {
+        const course = selectedOption.dataset.course;
+        const batch = selectedOption.dataset.batch;
+        
+        document.getElementById('paymentCourse').value = course;
+        handleCourseSelect();
+        document.getElementById('paymentBatch').value = batch;
+      }
+    }
+
+    function handleCourseSelect() {
+      const courseSelect = document.getElementById('paymentCourse');
+      const selectedOption = courseSelect.options[courseSelect.selectedIndex];
+      
+      if (selectedOption.value && selectedOption.dataset.fee) {
+        document.getElementById('paymentAmount').value = selectedOption.dataset.fee;
+      }
+    }
+
+    function addPayment(event) {
+      event.preventDefault();
+      
+      if (editingPaymentId) {
+        const paymentIndex = allData.payments.findIndex(p => p.id === editingPaymentId);
+        if (paymentIndex !== -1) {
+          allData.payments[paymentIndex] = {
+            ...allData.payments[paymentIndex],
+            studentName: document.getElementById('paymentStudent').value,
+            course: document.getElementById('paymentCourse').value,
+            batch: document.getElementById('paymentBatch').value,
+            amount: parseFloat(document.getElementById('paymentAmount').value),
+            mode: document.getElementById('paymentMode').value,
+            date: document.getElementById('paymentDate').value,
+            notes: document.getElementById('paymentNotes').value
+          };
+          showToast('Payment updated successfully!', 'success');
+        }
+      } else {
+        const payment = {
+          id: generateId(),
+          studentName: document.getElementById('paymentStudent').value,
+          course: document.getElementById('paymentCourse').value,
+          batch: document.getElementById('paymentBatch').value,
+          amount: parseFloat(document.getElementById('paymentAmount').value),
+          mode: document.getElementById('paymentMode').value,
+          date: document.getElementById('paymentDate').value,
+          notes: document.getElementById('paymentNotes').value,
+          createdAt: new Date().toISOString()
+        };
+        allData.payments.push(payment);
+        showToast('Payment recorded successfully!', 'success');
+      }
+
+      saveToLocalStorage();
+      hideAddPaymentForm();
+    }
+
+    function renderPayments() {
+      const container = document.getElementById('paymentsList');
+      if (allData.payments.length === 0) {
+        container.innerHTML = '<p class="text-gray-500 text-center py-8">No payments recorded yet. Click "Record Payment" to get started!</p>';
+        return;
+      }
+
+      const sortedPayments = [...allData.payments].sort((a, b) => new Date(b.date) - new Date(a.date));
+
+      container.innerHTML = sortedPayments.map(payment => {
+        const date = new Date(payment.date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+        
+        return `
+          <div class="flex items-center justify-between p-4 border border-gray-200 rounded-lg hover:bg-gray-50">
+            <div class="flex items-center gap-4 flex-1">
+              <div class="w-12 h-12 rounded-full bg-emerald-100 flex items-center justify-center text-xl">💰</div>
+              <div class="flex-1">
+                <div class="flex items-center gap-3">
+                  <h4 class="font-semibold text-gray-800">${payment.studentName}</h4>
+                  <span class="px-2 py-1 bg-blue-100 text-blue-800 text-xs rounded-full">${payment.mode}</span>
+                </div>
+                <div class="flex gap-4 text-sm text-gray-600 mt-1">
+                  <span>📚 ${payment.course}</span>
+                  <span>📅 ${payment.batch}</span>
+                  <span>🗓️ ${date}</span>
+                </div>
+                ${payment.notes ? `<p class="text-sm text-gray-500 mt-1">📝 ${payment.notes}</p>` : ''}
+              </div>
+            </div>
+            <div class="flex items-center gap-4">
+              <div class="text-right">
+                <p class="text-2xl font-bold text-emerald-600">₹${payment.amount.toLocaleString('en-IN')}</p>
+              </div>
+              <div class="flex gap-2">
+                <button onclick="editPayment('${payment.id}')" class="text-green-500 hover:text-green-700 text-xl">✏️</button>
+                <button onclick="deletePayment('${payment.id}')" class="text-red-500 hover:text-red-700 text-xl">🗑️</button>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+
+      updateFeeStats();
+    }
+
+    let editingPaymentId = null;
+
+    function editPayment(id) {
+      const payment = allData.payments.find(p => p.id === id);
+      if (!payment) return;
+
+      editingPaymentId = id;
+      populatePaymentDropdowns();
+      document.getElementById('paymentStudent').value = payment.studentName;
+      document.getElementById('paymentCourse').value = payment.course;
+      document.getElementById('paymentBatch').value = payment.batch;
+      document.getElementById('paymentAmount').value = payment.amount;
+      document.getElementById('paymentMode').value = payment.mode;
+      document.getElementById('paymentDate').value = payment.date;
+      document.getElementById('paymentNotes').value = payment.notes || '';
+      
+      document.getElementById('addPaymentForm').classList.remove('hidden');
+      document.querySelector('#addPaymentForm h3').textContent = 'Edit Fee Payment';
+      document.querySelector('#addPaymentForm button[type="submit"]').textContent = 'Update Payment';
+    }
+
+    function deletePayment(id) {
+      allData.payments = allData.payments.filter(p => p.id !== id);
+      saveToLocalStorage();
+      showToast('Payment record deleted!', 'success');
+    }
+
+    function updateFeeStats() {
+      const totalAmount = allData.payments.reduce((sum, p) => sum + parseFloat(p.amount || 0), 0);
+      
+      const currentMonth = new Date().getMonth();
+      const currentYear = new Date().getFullYear();
+      const monthPayments = allData.payments.filter(p => {
+        const paymentDate = new Date(p.date);
+        return paymentDate.getMonth() === currentMonth && paymentDate.getFullYear() === currentYear;
+      });
+      const monthAmount = monthPayments.reduce((sum, p) => sum + parseFloat(p.amount || 0), 0);
+
+      document.getElementById('totalCollected').textContent = '₹' + totalAmount.toLocaleString('en-IN');
+      document.getElementById('monthCollected').textContent = '₹' + monthAmount.toLocaleString('en-IN');
+      document.getElementById('totalPayments').textContent = allData.payments.length;
+    }
+
+    function renderFeeReminders() {
+      const container = document.getElementById('feeRemindersList');
+      
+      // Calculate students with pending fees
+      const studentsWithPayments = {};
+      allData.payments.forEach(payment => {
+        if (!studentsWithPayments[payment.studentName]) {
+          studentsWithPayments[payment.studentName] = 0;
+        }
+        studentsWithPayments[payment.studentName] += parseFloat(payment.amount);
+      });
+
+      const reminders = allData.students.map(student => {
+        const course = allData.courses.find(c => c.name === student.course);
+        const totalFee = course ? course.fee : 0;
+        const paidAmount = studentsWithPayments[student.name] || 0;
+        const pending = totalFee - paidAmount;
+
+        return { student, totalFee, paidAmount, pending };
+      }).filter(r => r.pending > 0).sort((a, b) => b.pending - a.pending);
+
+      if (reminders.length === 0) {
+        container.innerHTML = '<p class="text-gray-500 text-sm">No pending fees! 🎉</p>';
+        return;
+      }
+
+      container.innerHTML = reminders.slice(0, 5).map(reminder => `
+        <div class="p-3 bg-red-50 rounded-lg border border-red-200">
+          <p class="font-semibold text-sm text-gray-800">${reminder.student.name}</p>
+          <p class="text-xs text-gray-600">${reminder.student.course}</p>
+          <div class="flex justify-between items-center mt-1">
+            <span class="text-xs text-gray-600">Pending</span>
+            <span class="font-bold text-red-600">₹${reminder.pending.toLocaleString('en-IN')}</span>
+          </div>
+        </div>
+      `).join('');
+    }
+
+    function populateFeeHistoryDropdown() {
+      const select = document.getElementById('feeHistoryStudentSelect');
+      select.innerHTML = '<option value="">Select Student</option>';
+      allData.students.forEach(student => {
+        const option = document.createElement('option');
+        option.value = student.name;
+        option.textContent = student.name;
+        select.appendChild(option);
+      });
+    }
+
+    function showFeeHistory() {
+      const studentName = document.getElementById('feeHistoryStudentSelect').value;
+      if (!studentName) {
+        document.getElementById('feeHistoryDetails').innerHTML = '<p class="text-gray-500 text-center py-8">Select a student to view fee history</p>';
+        return;
+      }
+
+      const student = allData.students.find(s => s.name === studentName);
+      const course = allData.courses.find(c => c.name === student.course);
+      const payments = allData.payments.filter(p => p.studentName === studentName);
+      
+      const totalFee = course ? course.fee : 0;
+      const totalPaid = payments.reduce((sum, p) => sum + parseFloat(p.amount || 0), 0);
+      const pending = totalFee - totalPaid;
+
+      const content = `
+        <div class="space-y-4">
+          <div class="grid grid-cols-3 gap-4">
+            <div class="bg-blue-50 rounded-lg p-3 text-center">
+              <p class="text-xs text-gray-600">Total Fee</p>
+              <p class="text-xl font-bold text-blue-600">₹${totalFee.toLocaleString('en-IN')}</p>
+            </div>
+            <div class="bg-green-50 rounded-lg p-3 text-center">
+              <p class="text-xs text-gray-600">Paid</p>
+              <p class="text-xl font-bold text-green-600">₹${totalPaid.toLocaleString('en-IN')}</p>
+            </div>
+            <div class="bg-red-50 rounded-lg p-3 text-center">
+              <p class="text-xs text-gray-600">Pending</p>
+              <p class="text-xl font-bold text-red-600">₹${pending.toLocaleString('en-IN')}</p>
+            </div>
+          </div>
+
+          <div>
+            <h4 class="font-bold text-gray-800 mb-2">Payment History</h4>
+            ${payments.length > 0 ? `
+              <div class="space-y-2 max-h-64 overflow-y-auto">
+                ${payments.sort((a, b) => new Date(b.date) - new Date(a.date)).map(payment => `
+                  <div class="flex justify-between items-center p-3 bg-gray-50 rounded-lg">
+                    <div>
+                      <p class="font-medium text-sm">${new Date(payment.date).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}</p>
+                      <p class="text-xs text-gray-600">${payment.mode}</p>
+                    </div>
+                    <p class="font-bold text-green-600">₹${payment.amount.toLocaleString('en-IN')}</p>
+                  </div>
+                `).join('')}
+              </div>
+            ` : '<p class="text-gray-500 text-sm">No payments recorded yet</p>'}
+          </div>
+        </div>
+      `;
+
+      document.getElementById('feeHistoryDetails').innerHTML = content;
+    }
+
+    // Tab Switching
+    function switchTab(tabName) {
+      document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
+      document.querySelectorAll('.tab-button').forEach(el => el.classList.remove('active'));
+
+      document.getElementById(`content-${tabName}`).classList.remove('hidden');
+      document.getElementById(`tab-${tabName}`).classList.add('active');
+    }
+
+    // Toast Notifications
+    function showToast(message, type = 'success') {
+      const toast = document.createElement('div');
+      toast.className = 'toast';
+      toast.style.background = type === 'error' ? '#ef4444' : '#10b981';
+      toast.textContent = message;
+      document.body.appendChild(toast);
+      setTimeout(() => toast.remove(), 3000);
+    }
+
+    // Element SDK Config
+    async function onConfigChange(config) {
+      const title = config.app_title || defaultConfig.app_title;
+      const tagline = config.tagline || defaultConfig.tagline;
+
+      document.getElementById('headerTitle').textContent = title;
+      document.getElementById('headerTagline').textContent = tagline;
+    }
+
+    if (window.elementSdk) {
+      window.elementSdk.init({
+        defaultConfig,
+        onConfigChange,
+        mapToCapabilities: (config) => ({
+          recolorables: [],
+          borderables: [],
+          fontEditable: undefined,
+          fontSizeable: undefined
+        }),
+        mapToEditPanelValues: (config) => new Map([
+          ["app_title", config.app_title || defaultConfig.app_title],
+          ["tagline", config.tagline || defaultConfig.tagline]
+        ])
+      });
+    }
+
+    // Initialize on page load
+    loadFromLocalStorage();
+  </script>
+ <script>(function(){function c(){var b=a.contentDocument||a.contentWindow.document;if(b){var d=b.createElement('script');d.innerHTML="window.__CF$cv$params={r:'9a5228dad1a0a734',t:'MTc2NDI1MjEwOC4wMDAwMDA='};var a=document.createElement('script');a.nonce='';a.src='/cdn-cgi/challenge-platform/scripts/jsd/main.js';document.getElementsByTagName('head')[0].appendChild(a);";b.getElementsByTagName('head')[0].appendChild(d)}}if(document.body){var a=document.createElement('iframe');a.height=1;a.width=1;a.style.position='absolute';a.style.top=0;a.style.left=0;a.style.border='none';a.style.visibility='hidden';document.body.appendChild(a);if('loading'!==document.readyState)c();else if(window.addEventListener)document.addEventListener('DOMContentLoaded',c);else{var e=document.onreadystatechange||function(){};document.onreadystatechange=function(b){e(b);'loading'!==document.readyState&&(document.onreadystatechange=e,c())}}}})();</script></body>
+</html>
